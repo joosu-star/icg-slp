@@ -14,10 +14,17 @@
 <div onclick="activarAdmin()" class="admin-btn">⚙</div>
 
 <div class="tabs">
-  <div class="tab active" onclick="switchTab('ranking')">🔥 Tendencias</div>
-  <div class="tab" onclick="switchTab('general')">💬 General</div>
+  <div class="tab active" onclick="switchTab('trending')">🔥 Tendencias</div>
+  <div class="tab dropdown-btn" onclick="toggleChannels()">📂 Canales ⬇</div>
   <div class="tab" onclick="switchTab('fama')">🏆 Salón</div>
   <div class="tab" onclick="switchTab('info')">ℹ️ Info</div>
+</div>
+
+<div id="channelsDropdown" class="channels-dropdown hidden">
+  <div class="channel" onclick="switchTab('general')">💬 General</div>
+  <div class="channel" onclick="switchTab('profesores')">👨‍🏫 Profesores</div>
+  <div class="channel" onclick="switchTab('experiencias')">🧠 Experiencias</div>
+  <div class="channel" onclick="switchTab('quejas')">⚠️ Quejas</div>
 </div>
 
 <div class="search-bar">
