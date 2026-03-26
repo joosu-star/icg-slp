@@ -1,44 +1,162 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>Whispr</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="style.css">
-</head>
+body{
+  margin:0;
+  font-family:'Segoe UI', sans-serif;
+  background:linear-gradient(180deg,#0a0a0a,#050505);
+  color:white;
+}
 
-<body>
+/* HEADER */
+header{
+  text-align:center;
+  padding:15px;
+  font-size:20px;
+  font-weight:bold;
+  background:#0d0d0d;
+  position:sticky;
+  top:0;
+  z-index:10;
+}
 
-<header>🕶️ Whispr</header>
+/* TABS */
+.tabs{
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  padding:10px;
+}
 
-<div onclick="activarAdmin()" class="admin-btn">⚙</div>
+.tab{
+  padding:8px 14px;
+  border-radius:20px;
+  background:#1a1a1a;
+  cursor:pointer;
+  transition:.25s;
+}
 
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('ranking')">🔥 Tendencias</div>
-  <div class="tab" onclick="switchTab('general')">💬 General</div>
-  <div class="tab" onclick="switchTab('fama')">🏆 Salón</div>
-  <div class="tab" onclick="switchTab('info')">ℹ️ Info</div>
-</div>
+.active{
+  background:linear-gradient(45deg,#6a00ff,#a200ff);
+}
 
-<div class="search-bar">
-  <input id="searchInput" placeholder="Buscar..." oninput="render()">
-</div>
+/* SEARCH */
+.search-bar{
+  padding:10px;
+}
 
-<div id="content"></div>
+.search-bar input{
+  width:100%;
+  padding:12px;
+  border-radius:20px;
+  border:none;
+  background:#111;
+  color:white;
+}
 
-<button class="fab" onclick="openModal()">＋</button>
+/* MENSAJES */
+.message{
+  margin:12px;
+  padding:15px;
+  background:#141414;
+  border-radius:15px;
+  animation:fadeUp .3s;
+}
 
-<div id="modal" class="modal hidden">
-  <div class="modal-box">
-    <textarea id="newMsg" placeholder="¿Qué quieres decir?"></textarea>
-    <button onclick="addMessage()">Publicar</button>
-    <button onclick="closeModal()">Cancelar</button>
-  </div>
-</div>
+.owner{
+  border:1px solid #00c3ff;
+}
 
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-<script src="app.js"></script>
+.owner-name{
+  color:#00c3ff;
+}
 
-</body>
-</html>
+.verified{
+  color:#00ffcc;
+}
+
+/* SALÓN DE LA FAMA */
+.fame-section{
+  padding:10px;
+}
+
+.fame-title{
+  font-size:18px;
+  margin:10px;
+}
+
+.fame-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  gap:10px;
+}
+
+.fame-card{
+  background:#111;
+  border-radius:15px;
+  padding:10px;
+  text-align:center;
+  transition:.2s;
+}
+
+.fame-card:hover{
+  transform:scale(1.05);
+}
+
+.fame-top{
+  border:2px solid gold;
+}
+
+/* FAB */
+.fab{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  border:none;
+  background:#6a00ff;
+  color:white;
+  font-size:26px;
+}
+
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.modal-box{
+  background:#111;
+  padding:20px;
+  border-radius:20px;
+}
+
+.hidden{
+  display:none;
+}
+
+textarea{
+  width:100%;
+  height:100px;
+  background:#222;
+  color:white;
+  border:none;
+  border-radius:10px;
+  padding:10px;
+}
+
+/* INFO */
+.info-box{
+  margin:15px;
+  padding:15px;
+  background:#111;
+  border-radius:15px;
+}
+
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
