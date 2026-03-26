@@ -23,7 +23,7 @@ function activarAdmin() {
   }
 }
 
-// 👤 USUARIO
+// 👤 USUARIO (ID anónimo)
 function getUserId() {
   let id = localStorage.getItem("user_id");
   if (!id) {
@@ -50,19 +50,43 @@ function calcularViralidad(m){
   return score;
 }
 
+// 🛡️ ANTI-SPAM
+let lastMessageTime = 0;
+let lastMessageText = "";
+
 // ➕ MENSAJE
 async function addMessage(){
-  let text=document.getElementById("newMsg").value;
-  if(!text) return;
+  let text = document.getElementById("newMsg").value.trim();
+  const user = getUserId();
+
+  if (!text) return alert("Escribe algo");
+
+  let now = Date.now();
+
+  // ⏳ 10 segundos entre mensajes
+  if (now - lastMessageTime < 10000) {
+    return alert("Espera 10 segundos");
+  }
+
+  // 🚫 mensaje repetido
+  if (text === lastMessageText) {
+    return alert("No repitas el mismo mensaje");
+  }
 
   await db.collection("mensajes").add({
     text,
+    userId: user,
     categoria: currentTab,
-    likes:0,
-    replies:[],
-    pinned:false,
-    timestamp:Date.now()
+    likes: 0,
+    replies: [],
+    pinned: false,
+    timestamp: now
   });
+
+  lastMessageTime = now;
+  lastMessageText = text;
+
+  document.getElementById("newMsg").value = "";
 }
 
 // ❤️ LIKE
@@ -92,6 +116,12 @@ async function reply(id){
   await ref.update({replies});
 }
 
+// 🗑️ BORRAR SOLO AUTOR
+async function deleteMessage(id){
+  if (!confirm("¿Borrar mensaje?")) return;
+  await db.collection("mensajes").doc(id).delete();
+}
+
 // 📌 PIN
 async function togglePin(id,current){
   await db.collection("mensajes").doc(id).update({
@@ -104,6 +134,8 @@ function createMessage(m){
   let div=document.createElement("div");
   div.className="message";
 
+  const user = getUserId();
+
   div.innerHTML=`
     <div>${m.pinned?"📌":""} ${calcularViralidad(m)>10?"🔥":""} ${m.text}</div>
     <small>${timeAgo(m.timestamp)}</small>
@@ -112,6 +144,7 @@ function createMessage(m){
     <button class="like" onclick="like('${m.id}')">Like</button>
     <button class="reply" onclick="reply('${m.id}')">Responder</button>
     ${isAdmin?`<button onclick="togglePin('${m.id}',${m.pinned})">📌</button>`:""}
+    ${m.userId === user ? `<button onclick="deleteMessage('${m.id}')">🗑️</button>` : ""}
 
     ${(m.replies||[]).map(r=>`<div>↳ ${r}</div>`).join("")}
   `;
@@ -162,7 +195,6 @@ function render(){
 
     arr=arr.filter(m=>m.text.toLowerCase().includes(search));
 
-    // 🔥 ORDEN VIRAL
     arr.sort((a,b)=>{
       if(a.pinned&&!b.pinned)return -1;
       if(!a.pinned&&b.pinned)return 1;
