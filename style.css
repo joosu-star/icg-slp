@@ -5,46 +5,19 @@ body{
   color:white;
 }
 
-/* 🔥 TERMS (ARRIBA DE TODO) */
-.terms{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.95);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  z-index:9999;
-}
-
-.terms-box{
-  background:#111;
-  padding:25px;
-  border-radius:20px;
-  width:90%;
-  max-width:400px;
-  animation:scaleIn .4s;
-}
-
-/* MODAL */
-.modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.7);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  z-index:1000;
-}
-
-.hidden{
-  display:none;
-}
-
 /* HEADER */
 header{
   text-align:center;
   padding:15px;
   font-size:22px;
+}
+
+/* ADMIN */
+.admin-btn{
+  position:fixed;
+  top:5px;
+  right:10px;
+  opacity:0.1;
 }
 
 /* TABS */
@@ -91,6 +64,19 @@ header{
   animation:fadeUp .3s;
 }
 
+/* OWNER */
+.owner{
+  border:2px solid #00c3ff;
+}
+
+.owner-name{
+  color:#00c3ff;
+}
+
+.verified{
+  color:#00ffcc;
+}
+
 /* BOTON + */
 .fab{
   position:fixed;
@@ -106,12 +92,26 @@ header{
   cursor:pointer;
 }
 
-/* MODAL BOX */
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:1000;
+}
+
 .modal-box{
   background:#111;
   padding:20px;
   border-radius:20px;
   animation:scaleIn .3s;
+}
+
+.hidden{
+  display:none;
 }
 
 textarea{
