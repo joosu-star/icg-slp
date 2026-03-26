@@ -62,7 +62,7 @@ function timeAgo(t){
 
 // SCORE
 function score(m){
-  return (m.likes||0)+(m.replies?.length||0)*2+(m.pinned?1000:0);
+  return (m.likes||0)+(m.pinned?1000:0);
 }
 
 // ADD
@@ -80,7 +80,6 @@ async function addMessage(){
     user:getUserId(),
     likes:0,
     likedBy:[],
-    replies:[],
     pinned:false,
     timestamp:Date.now(),
     categoria:currentTab
@@ -137,7 +136,7 @@ function render(){
       return;
     }
 
-    // SALÓN DE LA FAMA
+    // SALON
     if(currentTab==="fama"){
       let hoy=Date.now()-86400000;
       let semana=Date.now()-604800000;
@@ -162,8 +161,12 @@ function render(){
   });
 }
 
-// CREAR SECCIÓN SALÓN
+// SALON
 function crearSeccion(titulo,data){
+  if(data.length===0){
+    return `<div class="info-box">Sin mensajes aún</div>`;
+  }
+
   let html=`<div class="fame-section"><div class="fame-title">${titulo}</div><div class="fame-grid">`;
 
   data.forEach((m,i)=>{
@@ -180,10 +183,9 @@ function crearSeccion(titulo,data){
   return html;
 }
 
-// UI MENSAJE
+// UI
 function createMessage(m){
   let div=document.createElement("div");
-
   let isOwner=m.user===getOwner();
 
   div.className="message "+(isOwner?"owner":"");
