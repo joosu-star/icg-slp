@@ -183,10 +183,10 @@ function render(){
 
   let search=document.getElementById("searchInput")?.value.toLowerCase()||"";
 
-  if(currentTab==="autores"){
+  if(currentTab==="informacion"){
     c.innerHTML=`<div class="message">
-    Página creada por un alumno.<br><br>
-    Para entretenimiento, historias y denuncias anónimas.
+   Whispr<br><br>
+    — comparte lo que no puedes decir en voz alta
     </div>`;
     return;
   }
@@ -204,7 +204,7 @@ function render(){
       return calcularViralidad(b)-calcularViralidad(a);
     });
 
-    if(currentTab==="ranking"){
+    if(currentTab==="Tops"){
       c.innerHTML+="<h2>🔥 Top Hoy</h2>";
       arr.filter(m=>esHoy(m.timestamp)).slice(0,5).forEach(createMessage);
 
