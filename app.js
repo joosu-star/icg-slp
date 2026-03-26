@@ -1,11 +1,7 @@
 const firebaseConfig = {
   apiKey: "AIzaSyAh7d5vljRjEaF7gCGDEmpI2D270_RFFEA",
   authDomain: "icg-slp.firebaseapp.com",
-  projectId: "icg-slp",
-  storageBucket: "icg-slp.firebasestorage.app",
-  messagingSenderId: "375461722998",
-  appId: "1:375461722998:web:8c9775c42eaff97bec9857",
-  measurementId: "G-623TZQE62V"
+  projectId: "icg-slp"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -13,148 +9,121 @@ const db = firebase.firestore();
 
 let currentTab = "ranking";
 
-// 🔐 ADMIN
-const ADMIN_PASSWORD = "1234";
-let isAdmin = false;
+// 🔐 ADMIN OFUSCADO
+const _A="MzAxOTE1MzE=";
+let isAdmin=false;
 
-function activarAdmin() {
-  let pass = prompt("Contraseña:");
-  if (pass === ADMIN_PASSWORD) {
-    isAdmin = true;
-    alert("Admin activado");
+function _D(x){ return atob(x); }
+
+function activarAdmin(){
+  let p=prompt("...");
+  if(p===_D(_A)){
+    isAdmin=true;
+    localStorage.setItem("owner_id",getUserId());
+    alert("✔ admin");
     render();
   }
 }
 
-// 👤 USUARIO (ID anónimo)
-function getUserId() {
-  let id = localStorage.getItem("user_id");
-  if (!id) {
-    id = "user_" + Math.random().toString(36).substr(2,9);
-    localStorage.setItem("user_id", id);
+function getUserId(){
+  let id=localStorage.getItem("user_id");
+  if(!id){
+    id="anon_"+Math.random().toString(36).substr(2,9);
+    localStorage.setItem("user_id",id);
   }
   return id;
 }
 
-// ⏳ TIEMPO
-function timeAgo(t) {
-  let diff = (Date.now() - t)/1000;
-  if (diff<60) return "hace "+Math.floor(diff)+"s";
-  if (diff<3600) return "hace "+Math.floor(diff/60)+" min";
-  if (diff<86400) return "hace "+Math.floor(diff/3600)+" h";
-  return "hace "+Math.floor(diff/86400)+" días";
+function getOwner(){
+  return localStorage.getItem("owner_id");
 }
 
-// 🔥 VIRALIDAD
-function calcularViralidad(m){
-  let score = m.likes + (m.replies?.length||0)*2;
-  let horas = (Date.now()-m.timestamp)/(1000*60*60);
-  if(horas<24) score+=5;
-  return score;
+function timeAgo(t){
+  let d=(Date.now()-t)/1000;
+  if(d<60) return Math.floor(d)+"s";
+  if(d<3600) return Math.floor(d/60)+"m";
+  if(d<86400) return Math.floor(d/3600)+"h";
+  return Math.floor(d/86400)+"d";
 }
 
-// 🛡️ ANTI-SPAM
-let lastMessageTime = 0;
-let lastMessageText = "";
+function score(m){
+  return (m.pinned?1000:0)+m.likes+(m.replies?.length||0)*2;
+}
 
-// ➕ MENSAJE
+function openModal(){document.getElementById("modal").classList.remove("hidden");}
+function closeModal(){document.getElementById("modal").classList.add("hidden");}
+
+let lastTime=0;
+
 async function addMessage(){
-  let text = document.getElementById("newMsg").value.trim();
-  const user = getUserId();
+  let text=document.getElementById("newMsg").value.trim();
+  if(!text) return;
 
-  if (!text) return alert("Escribe algo");
+  if(Date.now()-lastTime<5000) return alert("Espera 5s");
 
-  let now = Date.now();
-
-  // ⏳ 10 segundos entre mensajes
-  if (now - lastMessageTime < 10000) {
-    return alert("Espera 10 segundos");
-  }
-
-  // 🚫 mensaje repetido
-  if (text === lastMessageText) {
-    return alert("No repitas el mismo mensaje");
+  // comandos
+  if(text.startsWith("/")){
+    const cmd=text.split(" ");
+    if(cmd[0]==="/delete" && isAdmin){ deleteMessage(cmd[1]); return; }
+    if(cmd[0]==="/pin" && isAdmin){ togglePin(cmd[1]); return; }
+    if(cmd[0]==="/say" && isAdmin){ text=cmd.slice(1).join(" "); }
   }
 
   await db.collection("mensajes").add({
     text,
-    userId: user,
-    categoria: currentTab,
-    likes: 0,
-    replies: [],
-    pinned: false,
-    timestamp: now
+    userId:getUserId(),
+    categoria:currentTab,
+    likes:0,
+    likedBy:[],
+    replies:[],
+    pinned:false,
+    timestamp:Date.now()
   });
 
-  lastMessageTime = now;
-  lastMessageText = text;
-
-  document.getElementById("newMsg").value = "";
+  lastTime=Date.now();
+  document.getElementById("newMsg").value="";
+  closeModal();
 }
 
-// ❤️ LIKE
 async function like(id){
-  const user=getUserId();
-  const likeRef=db.collection("likes").doc(id+"_"+user);
+  let ref=db.collection("mensajes").doc(id);
+  let doc=await ref.get();
+  let data=doc.data();
+  let user=getUserId();
 
-  let doc=await likeRef.get();
-  if(!doc.exists){
-    await likeRef.set({});
-    await db.collection("mensajes").doc(id).update({
-      likes: firebase.firestore.FieldValue.increment(1)
-    });
-  }
+  if(data.likedBy?.includes(user)) return;
+
+  await ref.update({
+    likes:data.likes+1,
+    likedBy:[...(data.likedBy||[]),user]
+  });
 }
 
-// 💬 RESPUESTA
-async function reply(id){
-  let text=prompt("Respuesta:");
+async function sendReply(id){
+  let input=document.getElementById("reply-"+id);
+  let text=input.value.trim();
   if(!text) return;
 
   let ref=db.collection("mensajes").doc(id);
   let doc=await ref.get();
   let replies=doc.data().replies||[];
-  replies.push(text);
+
+  replies.push({text,user:getUserId(),time:Date.now()});
 
   await ref.update({replies});
+  input.value="";
 }
 
-// 🗑️ BORRAR SOLO AUTOR
 async function deleteMessage(id){
-  if (!confirm("¿Borrar mensaje?")) return;
   await db.collection("mensajes").doc(id).delete();
 }
 
-// 📌 PIN
-async function togglePin(id,current){
-  await db.collection("mensajes").doc(id).update({
-    pinned: !current
-  });
+async function togglePin(id){
+  let ref=db.collection("mensajes").doc(id);
+  let doc=await ref.get();
+  await ref.update({pinned:!doc.data().pinned});
 }
 
-// 🧱 MENSAJE UI
-function createMessage(m){
-  let div=document.createElement("div");
-  div.className="message";
-
-  const user = getUserId();
-
-  div.innerHTML=`
-    <div>${m.pinned?"📌":""} ${calcularViralidad(m)>10?"🔥":""} ${m.text}</div>
-    <small>${timeAgo(m.timestamp)}</small>
-    <div>❤️ ${m.likes}</div>
-
-    <button class="like" onclick="like('${m.id}')">Like</button>
-    <button class="reply" onclick="reply('${m.id}')">Responder</button>
-    ${isAdmin?`<button onclick="togglePin('${m.id}',${m.pinned})">📌</button>`:""}
-    ${m.userId === user ? `<button onclick="deleteMessage('${m.id}')">🗑️</button>` : ""}
-
-    ${(m.replies||[]).map(r=>`<div>↳ ${r}</div>`).join("")}
-  `;
-  document.getElementById("content").appendChild(div);
-}
-
-// 🔄 TAB
 function switchTab(tab){
   currentTab=tab;
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
@@ -162,34 +131,9 @@ function switchTab(tab){
   render();
 }
 
-// 🏆 TOPS
-function esHoy(t){
-  let d=new Date(t);
-  let now=new Date();
-  return d.toDateString()===now.toDateString();
-}
-
-function esSemana(t){
-  let d=new Date(t);
-  let now=new Date();
-  let diff=(now-d)/(1000*60*60*24);
-  return diff<=7;
-}
-
-// 🎯 RENDER
 function render(){
   let c=document.getElementById("content");
-  c.innerHTML="";
-
-  let search=document.getElementById("searchInput")?.value.toLowerCase()||"";
-
-  if(currentTab==="informacion"){
-    c.innerHTML=`<div class="message">
-   Whispr<br><br>
-    — comparte lo que no puedes decir en voz alta
-    </div>`;
-    return;
-  }
+  let search=document.getElementById("searchInput").value.toLowerCase();
 
   db.collection("mensajes").onSnapshot(snap=>{
     c.innerHTML="";
@@ -198,28 +142,57 @@ function render(){
 
     arr=arr.filter(m=>m.text.toLowerCase().includes(search));
 
-    arr.sort((a,b)=>{
-      if(a.pinned&&!b.pinned)return -1;
-      if(!a.pinned&&b.pinned)return 1;
-      return calcularViralidad(b)-calcularViralidad(a);
-    });
-
-    if(currentTab==="Tops"){
-      c.innerHTML+="<h2>🔥 Top Hoy</h2>";
-      arr.filter(m=>esHoy(m.timestamp)).slice(0,5).forEach(createMessage);
-
-      c.innerHTML+="<h2>🏆 Top Semana</h2>";
-      arr.filter(m=>esSemana(m.timestamp)).slice(0,5).forEach(createMessage);
-      return;
+    if(currentTab!=="ranking"){
+      arr=arr.filter(m=>m.categoria===currentTab);
     }
 
-    arr.filter(m=>m.categoria===currentTab).forEach(createMessage);
+    arr.sort((a,b)=>score(b)-score(a));
 
-    c.innerHTML+=`
-      <textarea id="newMsg"></textarea>
-      <button onclick="addMessage()">Enviar</button>
-    `;
+    arr.forEach(createMessage);
   });
+}
+
+function createMessage(m){
+  let div=document.createElement("div");
+
+  const user=getUserId();
+  const owner=getOwner();
+
+  const isOwner=m.userId===owner;
+  const verified=m.likes>5;
+
+  div.className="message "+(isOwner?"owner":"");
+
+  div.innerHTML=`
+    <div>
+      ${isOwner?`<span class="owner-name">👑 Owner</span>`:""}
+      ${verified?`<span class="verified"> ✔</span>`:""}
+      <br>${m.text}
+    </div>
+
+    <small>${timeAgo(m.timestamp)}</small>
+    <div>❤️ ${m.likes}</div>
+
+    <div class="actions">
+      <button onclick="like('${m.id}')">❤️</button>
+      ${(m.userId===user||isAdmin)?`<button onclick="deleteMessage('${m.id}')">🗑️</button>`:""}
+      ${isAdmin?`<button onclick="togglePin('${m.id}')">📌</button>`:""}
+    </div>
+
+    ${(m.replies||[]).map(r=>`
+      <div class="reply">
+        ${r.user===owner?`<span class="owner-name">👑</span>`:""}
+        ${r.text} (${timeAgo(r.time)})
+      </div>
+    `).join("")}
+
+    <div class="reply-box">
+      <input id="reply-${m.id}" placeholder="Responder...">
+      <button onclick="sendReply('${m.id}')">➤</button>
+    </div>
+  `;
+
+  document.getElementById("content").appendChild(div);
 }
 
 render();
