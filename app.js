@@ -8,6 +8,7 @@ firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 
 let currentTab="ranking";
+let currentChannel="general";
 let lastTime=0;
 
 // ADMIN
@@ -44,16 +45,24 @@ function openModal(){
     alert("No puedes publicar aquí");
     return;
   }
-  let placeholder="¿Qué quieres decir?";
-  if(currentTab==="profesores") placeholder="Opina sobre un profesor…";
-  if(currentTab==="experiencias") placeholder="Cuenta tu experiencia…";
-  if(currentTab==="quejas") placeholder="Describe la situación…";
-  document.getElementById("newMsg").placeholder=placeholder;
   document.getElementById("modal").classList.remove("hidden");
+  setPlaceholder();
 }
 
 function closeModal(){
   document.getElementById("modal").classList.add("hidden");
+}
+
+// PLACEHOLDER DINAMICO
+function setPlaceholder(){
+  const ph = document.getElementById("newMsg");
+  switch(currentChannel){
+    case "general": ph.placeholder="¿Qué quieres decir?"; break;
+    case "profesores": ph.placeholder="Opina sobre un profesor..."; break;
+    case "experiencias": ph.placeholder="Cuenta tu experiencia..."; break;
+    case "quejas": ph.placeholder="Describe la situación..."; break;
+    default: ph.placeholder="Escribe algo...";
+  }
 }
 
 // TIEMPO
@@ -87,7 +96,7 @@ async function addMessage(){
     likedBy:[],
     pinned:false,
     timestamp:Date.now(),
-    categoria:currentTab
+    categoria:currentChannel
   });
 
   lastTime=Date.now();
@@ -115,29 +124,32 @@ async function deleteMessage(id){
   await db.collection("mensajes").doc(id).delete();
 }
 
-// TAB
+// SWITCH TAB
 function switchTab(tab){
   currentTab=tab;
+  currentChannel="general"; // default
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  if(tab==="ranking") document.getElementById("tab-trending").classList.add("active");
-  else if(tab==="fama") document.getElementById("tab-fame").classList.add("active");
-  else if(tab==="info") document.getElementById("tab-info").classList.add("active");
-  else document.getElementById("tab-channels").classList.add("active");
+  if(tab === "ranking") document.getElementById("tabTrending").classList.add("active");
+  if(tab === "fama") document.getElementById("tabFame").classList.add("active");
+  if(tab === "info") document.getElementById("tabInfo").classList.add("active");
   render();
 }
 
-// DROPDOWN
+// DROPDOWN CANALES
 function toggleChannels(){
-  const dd=document.getElementById("channelsDropdown");
-  dd.classList.toggle("show");
+  const dropdown = document.getElementById("channelsDropdown");
+  dropdown.classList.toggle("hidden");
 }
 
-// CHANNEL ITEM CLICK
+// CAMBIAR CANAL
 document.querySelectorAll(".channel-item").forEach(item=>{
   item.addEventListener("click", ()=>{
-    let tab=item.dataset.tab;
-    currentTab=tab;
-    document.getElementById("channelsDropdown").classList.remove("show");
+    currentChannel = item.dataset.tab;
+    currentTab = "channels";
+    document.getElementById("channelsDropdown").classList.add("hidden");
+    document.getElementById("currentChannelLabel").innerText = item.innerText;
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    document.getElementById("tabChannels").classList.add("active");
     render();
   });
 });
@@ -146,36 +158,6 @@ document.querySelectorAll(".channel-item").forEach(item=>{
 function render(){
   let c=document.getElementById("content");
   let search=document.getElementById("searchInput").value.toLowerCase();
-
-  // mostrar nombre de canal y color
-  const channelColors={
-    general:"#3498db",
-    profesores:"#2ecc71",
-    experiencias:"#9b59b6",
-    quejas:"#e74c3c",
-    ranking:"#6a00ff",
-    fama:"#f1c40f",
-    info:"#95a5a6"
-  };
-
-  const channelNames={
-    general:"💬 General",
-    profesores:"👨‍🏫 Profesores",
-    experiencias:"🧠 Experiencias",
-    quejas:"⚠️ Quejas",
-    ranking:"🔥 Tendencias",
-    fama:"🏆 Salón",
-    info:"ℹ️ Info"
-  };
-
-  document.getElementById("currentChannelName").innerText=channelNames[currentTab]||"";
-  document.getElementById("currentChannelName").style.color=channelColors[currentTab]||"white";
-
-  // borde oleaje en contenido
-  c.style.border="3px solid";
-  c.style.borderColor=channelColors[currentTab]||"white";
-  c.style.borderRadius="15px";
-  c.style.animation="waveBorder 3s infinite";
 
   db.collection("mensajes").onSnapshot(snap=>{
     c.innerHTML="";
@@ -186,18 +168,13 @@ function render(){
 
     // INFO
     if(currentTab==="info"){
-      c.innerHTML=`
-      <div class="info-box">
+      c.innerHTML=`<div class="info-box">
         🕶️ Whispr<br>
-        Plataforma digital enfocada en la expresión anónima dentro de comunidades.<br><br>
-        🎯 Misión<br>
-        Permitir que las personas compartan experiencias, opiniones y situaciones sin miedo.<br><br>
-        🔒 Privacidad<br>
-        No almacenamos identidad real. Sistema completamente anónimo.<br><br>
-        ⚖️ Normas<br>
-        No amenazas reales. No datos personales. No contenido ilegal.<br><br>
-        📌 Nota<br>
-        Whispr es una plataforma independiente creada con fines sociales y de expresión.
+        Plataforma digital enfocada en la expresión anónima dentro de comunidades.<br>
+        🎯 Misión: Permitir que las personas compartan experiencias, opiniones y situaciones sin miedo.<br>
+        🔒 Privacidad: No almacenamos identidad real, sistema completamente anónimo.<br>
+        ⚖️ Normas: No amenazas, no datos personales, no contenido ilegal.<br>
+        📌 Nota: Whispr es una plataforma independiente creada con fines sociales y de expresión.
       </div>`;
       return;
     }
@@ -217,10 +194,14 @@ function render(){
       return;
     }
 
-    if(currentTab!=="ranking"){
+    // CANALES
+    if(currentTab==="channels"){
+      arr=arr.filter(m=>m.categoria===currentChannel);
+    } else if(currentTab!=="ranking"){
       arr=arr.filter(m=>m.categoria===currentTab);
     }
 
+    // TENDENCIAS
     arr.sort((a,b)=>score(b)-score(a));
 
     arr.forEach(createMessage);
@@ -236,18 +217,11 @@ function crearSeccion(titulo,data){
   let html=`<div class="fame-section"><div class="fame-title">${titulo}</div><div class="fame-grid">`;
 
   data.forEach((m,i)=>{
-    let channelIcons={
-      general:"💬",
-      profesores:"👨‍🏫",
-      experiencias:"🧠",
-      quejas:"⚠️"
-    };
     html+=`
-      <div class="fame-card ${i===0?"fame-top":""}" style="border-color:${m.categoria==='quejas'?'#e74c3c':'gold'}">
+      <div class="fame-card ${i===0?"fame-top":""}">
         ${i===0?"👑":""}
         <div>${m.text}</div>
-        <div>${channelIcons[m.categoria]||""} ${m.categoria}</div>
-        <div>❤️ ${m.likes}</div>
+        <div>${getChannelBadge(m.categoria)} ❤️ ${m.likes}</div>
       </div>
     `;
   });
@@ -256,28 +230,38 @@ function crearSeccion(titulo,data){
   return html;
 }
 
+// BADGE CATEGORIA
+function getChannelBadge(c){
+  switch(c){
+    case "general": return "💬 General";
+    case "profesores": return "👨‍🏫 Profesores";
+    case "experiencias": return "🧠 Experiencias";
+    case "quejas": return "⚠️ Quejas";
+    default: return "";
+  }
+}
+
 // UI
 function createMessage(m){
   let div=document.createElement("div");
   let isOwner=m.user===getOwner();
 
-  const colors={
-    general:"#3498db",
-    profesores:"#2ecc71",
-    experiencias:"#9b59b6",
-    quejas:"#e74c3c"
-  };
-
   div.className="message "+(isOwner?"owner":"");
-  div.style.border="2px solid";
-  div.style.borderColor=colors[m.categoria]||"#ffffff";
-  div.style.animation="waveBorder 3s infinite";
+
+  // COLOR DEL BORDE SEGUN CANAL
+  let colorMap={
+    general:"#1E90FF",
+    profesores:"#2ECC71",
+    experiencias:"#9B59B6",
+    quejas:"#E74C3C"
+  };
+  div.style.color=colorMap[m.categoria]||"#FFF";
 
   div.innerHTML=`
-    ${isOwner?`<span class="owner-name">👑 Owner</span>`:""}
+    <span>${getChannelBadge(m.categoria)}</span>
+    ${isOwner?`<br><span class="owner-name">👑 Owner</span>`:""}
     <br>${m.text}
     <br><small>${timeAgo(m.timestamp)}</small>
-    <br>${m.categoria==='quejas'?'⚠️ ':''}${m.categoria==='profesores'?'👨‍🏫 ':''}${m.categoria==='experiencias'?'🧠 ':''}${m.categoria==='general'?'💬 ':''} ${m.categoria}
     <br>❤️ ${m.likes}
     <br>
     <button onclick="like('${m.id}')">❤️</button>
