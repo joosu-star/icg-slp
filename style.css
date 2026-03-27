@@ -3,6 +3,7 @@ body{
   font-family:'Segoe UI', sans-serif;
   background:linear-gradient(180deg,#0a0a0a,#050505);
   color:white;
+  transition: background 1s ease;
 }
 
 header{
@@ -17,6 +18,7 @@ header{
   top:5px;
   right:10px;
   opacity:0.1;
+  cursor:pointer;
 }
 
 .tabs{
@@ -56,7 +58,7 @@ header{
   background:#141414;
   border-radius:15px;
   position:relative;
-  transition: background 1s ease;
+  transition: border 1s ease;
 }
 
 .owner{
@@ -109,7 +111,6 @@ textarea{
   padding:10px;
 }
 
-/* INFO */
 .info-box{
   margin:15px;
   padding:15px;
@@ -138,18 +139,19 @@ textarea{
   border-radius:15px;
   padding:10px;
   text-align:center;
+  position:relative;
 }
 
 .fame-top{
   border:2px solid gold;
 }
 
-/* DROPDOWN CANALES */
+/* CANALES */
 .channels-dropdown{
   overflow:hidden;
   max-height:0;
   opacity:0;
-  transition:max-height 0.3s ease, opacity 0.3s ease;
+  transition:max-height 0.5s ease, opacity 0.5s ease;
   margin-bottom:10px;
 }
 
@@ -165,17 +167,36 @@ textarea{
   background:#1a1a1a;
   cursor:pointer;
   text-align:left;
+  transition: background 0.3s;
 }
 
-/* BORDES ANIMADOS POR CANAL */
-@keyframes wave {
-  0% { box-shadow: 0 0 5px rgba(255,255,255,0.1); }
-  50% { box-shadow: 0 0 12px rgba(255,255,255,0.3); }
-  100% { box-shadow: 0 0 5px rgba(255,255,255,0.1); }
+.sub-tab:hover{
+  background:#2a2a2a;
 }
 
-/* Colores canal */
-.message.general{ border:2px solid #0099ff; animation: wave 3s ease-in-out infinite; }
-.message.profesores{ border:2px solid #00ff99; animation: wave 3s ease-in-out infinite; }
-.message.experiencias{ border:2px solid #9900ff; animation: wave 3s ease-in-out infinite; }
-.message.quejas{ border:2px solid #ff3333; animation: wave 3s ease-in-out infinite; }
+/* BORDES ANIMADOS POR CATEGORÍA */
+.message.general{
+  border:2px solid #3b82f6;
+  animation: wave 3s infinite alternate;
+}
+
+.message.profesores{
+  border:2px solid #10b981;
+  animation: wave 3s infinite alternate;
+}
+
+.message.experiencias{
+  border:2px solid #8b5cf6;
+  animation: wave 3s infinite alternate;
+}
+
+.message.quejas{
+  border:2px solid #ef4444;
+  animation: wave 3s infinite alternate;
+}
+
+@keyframes wave{
+  0%{box-shadow:0 0 10px rgba(255,255,255,0.2);}
+  50%{box-shadow:0 0 20px rgba(255,255,255,0.4);}
+  100%{box-shadow:0 0 10px rgba(255,255,255,0.2);}
+}
