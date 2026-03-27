@@ -31,10 +31,9 @@ header{
   border-radius:20px;
   background:#1a1a1a;
   cursor:pointer;
-  transition: background 0.3s;
 }
 
-.tab.active{
+.active{
   background:#6a00ff;
 }
 
@@ -56,7 +55,6 @@ header{
   padding:15px;
   background:#141414;
   border-radius:15px;
-  transition: all 0.5s;
 }
 
 .owner{
@@ -145,19 +143,20 @@ textarea{
 
 /* DROPDOWN CANALES */
 .channels-dropdown{
+  display:flex;
   flex-direction:column;
   background:#111;
   margin:0 10px;
   border-radius:15px;
   overflow:hidden;
-  transition: all 0.3s ease;
-  height:0;
+  max-height:0;
   opacity:0;
   pointer-events:none;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
 }
 
 .channels-dropdown.show{
-  height:auto;
+  max-height:500px;
   opacity:1;
   pointer-events:auto;
 }
@@ -173,13 +172,13 @@ textarea{
   background:#222;
 }
 
-/* BORDES ANIMADOS POR CATEGORIA */
-.general .message{border:2px solid #3b82f6; animation: wave 3s infinite ease-in-out;}
-.profesores .message{border:2px solid #10b981; animation: wave 3s infinite ease-in-out;}
-.quejas .message{border:2px solid #ef4444; animation: wave 3s infinite ease-in-out;}
-.experiencias .message{border:2px solid #8b5cf6; animation: wave 3s infinite ease-in-out;}
+/* BORDES Y OLEAJE POR CANAL */
+.message.general{border:2px solid #1e90ff; animation:wave 4s ease-in-out infinite;}
+.message.profesores{border:2px solid #32cd32; animation:wave 4s ease-in-out infinite;}
+.message.experiencias{border:2px solid #8a2be2; animation:wave 4s ease-in-out infinite;}
+.message.quejas{border:2px solid #ff4500; animation:wave 4s ease-in-out infinite;}
 
 @keyframes wave{
-  0%,100%{box-shadow:0 0 10px rgba(255,255,255,0.1);}
-  50%{box-shadow:0 0 20px rgba(255,255,255,0.3);}
+  0%,100%{box-shadow:0 0 8px rgba(255,255,255,0.1);}
+  50%{box-shadow:0 0 15px rgba(255,255,255,0.2);}
 }
