@@ -3,7 +3,6 @@ body{
   font-family:'Segoe UI', sans-serif;
   background:linear-gradient(180deg,#0a0a0a,#050505);
   color:white;
-  transition: background 1s ease;
 }
 
 header{
@@ -18,7 +17,6 @@ header{
   top:5px;
   right:10px;
   opacity:0.1;
-  cursor:pointer;
 }
 
 .tabs{
@@ -57,8 +55,6 @@ header{
   padding:15px;
   background:#141414;
   border-radius:15px;
-  position:relative;
-  transition: border 1s ease;
 }
 
 .owner{
@@ -139,20 +135,21 @@ textarea{
   border-radius:15px;
   padding:10px;
   text-align:center;
-  position:relative;
 }
 
 .fame-top{
   border:2px solid gold;
 }
 
-/* CANALES */
+/* CHANNEL DROPDOWN */
 .channels-dropdown{
   overflow:hidden;
   max-height:0;
   opacity:0;
-  transition:max-height 0.5s ease, opacity 0.5s ease;
-  margin-bottom:10px;
+  transition:max-height 0.3s ease, opacity 0.3s ease;
+  display:flex;
+  flex-direction:column;
+  margin:0 10px 10px 10px;
 }
 
 .channels-dropdown.show{
@@ -160,43 +157,38 @@ textarea{
   opacity:1;
 }
 
-.sub-tab{
-  padding:8px 14px;
-  margin:3px 0;
-  border-radius:15px;
+.channel-item{
   background:#1a1a1a;
+  padding:10px;
+  margin:2px 0;
+  border-radius:15px;
   cursor:pointer;
-  text-align:left;
-  transition: background 0.3s;
 }
 
-.sub-tab:hover{
-  background:#2a2a2a;
+/* COLORES POR CANAL */
+.channel-general{
+  border:2px solid #0066ff;
+  animation:wave 3s ease-in-out infinite;
 }
 
-/* BORDES ANIMADOS POR CATEGORÍA */
-.message.general{
-  border:2px solid #3b82f6;
-  animation: wave 3s infinite alternate;
+.channel-profesores{
+  border:2px solid #00ff66;
+  animation:wave 3s ease-in-out infinite;
 }
 
-.message.profesores{
-  border:2px solid #10b981;
-  animation: wave 3s infinite alternate;
+.channel-experiencias{
+  border:2px solid #aa00ff;
+  animation:wave 3s ease-in-out infinite;
 }
 
-.message.experiencias{
-  border:2px solid #8b5cf6;
-  animation: wave 3s infinite alternate;
+.channel-quejas{
+  border:2px solid #ff3300;
+  animation:wave 3s ease-in-out infinite;
 }
 
-.message.quejas{
-  border:2px solid #ef4444;
-  animation: wave 3s infinite alternate;
-}
-
+/* Animación oleaje */
 @keyframes wave{
-  0%{box-shadow:0 0 10px rgba(255,255,255,0.2);}
-  50%{box-shadow:0 0 20px rgba(255,255,255,0.4);}
-  100%{box-shadow:0 0 10px rgba(255,255,255,0.2);}
+  0%{box-shadow:0 0 10px rgba(255,255,255,0.1);}
+  50%{box-shadow:0 0 20px rgba(255,255,255,0.2);}
+  100%{box-shadow:0 0 10px rgba(255,255,255,0.1);}
 }
