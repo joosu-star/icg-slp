@@ -3,19 +3,7 @@ body{
   font-family:'Segoe UI', sans-serif;
   background:linear-gradient(180deg,#0a0a0a,#050505);
   color:white;
-  transition: background 1.5s;
-}
-
-/* Oleaje bordes según canal */
-body.channel-general{border:6px solid #007bff;animation:borderWave 4s infinite alternate;}
-body.channel-profesores{border:6px solid #28a745;animation:borderWave 4s infinite alternate;}
-body.channel-experiencias{border:6px solid #6f42c1;animation:borderWave 4s infinite alternate;}
-body.channel-quejas{border:6px solid #dc3545;animation:borderWave 4s infinite alternate;}
-
-@keyframes borderWave{
-  0%{box-shadow:0 0 10px rgba(255,255,255,0.1);}
-  50%{box-shadow:0 0 20px rgba(255,255,255,0.2);}
-  100%{box-shadow:0 0 10px rgba(255,255,255,0.1);}
+  transition: background 1.5s ease;
 }
 
 header{
@@ -45,50 +33,48 @@ header{
   border-radius:20px;
   background:#1a1a1a;
   cursor:pointer;
-  transition: background 0.3s;
+  transition: all 0.3s ease;
 }
 
 .tab.active{
-  background:#6a00ff;
+  border: 3px solid transparent;
+  animation: waveBorder 3s infinite;
+}
+
+@keyframes waveBorder {
+  0% { border-color: rgba(0,0,0,0); }
+  50% { border-color: currentColor; }
+  100% { border-color: rgba(0,0,0,0); }
 }
 
 .channels-dropdown{
-  display:none;
-  flex-direction: column;
-  background:#111;
-  margin:0 10px;
-  border-radius:10px;
   overflow:hidden;
-  transition: max-height 0.3s ease;
+  max-height:0;
+  transition:max-height 0.3s ease, opacity 0.3s ease;
+  opacity:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
 
 .channels-dropdown.show{
-  display:flex;
+  max-height:500px;
+  opacity:1;
 }
 
-.channels-dropdown div{
+.channel-item{
+  width:90%;
   padding:10px;
+  margin:3px 0;
+  background:#111;
+  border-radius:15px;
+  text-align:center;
   cursor:pointer;
-  border-bottom:1px solid #222;
+  transition: background 0.3s ease;
 }
 
-.channels-dropdown div:hover{
+.channel-item:hover{
   background:#222;
-}
-
-#current-channel{
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  background: rgba(0,0,0,0.6);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-weight: bold;
-  font-family: sans-serif;
-  z-index: 1000;
-  pointer-events: none;
-  transition: all 0.5s;
 }
 
 .search-bar{
@@ -104,11 +90,19 @@ header{
   color:white;
 }
 
+.current-channel{
+  text-align:center;
+  padding:8px 0;
+  font-weight:bold;
+  transition: color 1.2s ease;
+}
+
 .message{
   margin:12px;
   padding:15px;
   background:#141414;
   border-radius:15px;
+  transition: border 1.5s ease;
 }
 
 .owner{
@@ -194,3 +188,9 @@ textarea{
 .fame-top{
   border:2px solid gold;
 }
+
+/* COLORES POR CANAL */
+.general-color{ color:#00c0ff; border-color:#00c0ff; }
+.profesores-color{ color:#00ff80; border-color:#00ff80; }
+.experiencias-color{ color:#aa00ff; border-color:#aa00ff; }
+.quejas-color{ color:#ff4040; border-color:#ff4040; }
