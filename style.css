@@ -3,6 +3,19 @@ body{
   font-family:'Segoe UI', sans-serif;
   background:linear-gradient(180deg,#0a0a0a,#050505);
   color:white;
+  transition: background 1.5s;
+}
+
+/* Oleaje bordes según canal */
+body.channel-general{border:6px solid #007bff;animation:borderWave 4s infinite alternate;}
+body.channel-profesores{border:6px solid #28a745;animation:borderWave 4s infinite alternate;}
+body.channel-experiencias{border:6px solid #6f42c1;animation:borderWave 4s infinite alternate;}
+body.channel-quejas{border:6px solid #dc3545;animation:borderWave 4s infinite alternate;}
+
+@keyframes borderWave{
+  0%{box-shadow:0 0 10px rgba(255,255,255,0.1);}
+  50%{box-shadow:0 0 20px rgba(255,255,255,0.2);}
+  100%{box-shadow:0 0 10px rgba(255,255,255,0.1);}
 }
 
 header{
@@ -17,6 +30,7 @@ header{
   top:5px;
   right:10px;
   opacity:0.1;
+  cursor:pointer;
 }
 
 .tabs{
@@ -24,8 +38,6 @@ header{
   justify-content:center;
   gap:8px;
   padding:10px;
-  position:relative;
-  z-index:2;
 }
 
 .tab{
@@ -33,10 +45,50 @@ header{
   border-radius:20px;
   background:#1a1a1a;
   cursor:pointer;
+  transition: background 0.3s;
 }
 
-.active{
+.tab.active{
   background:#6a00ff;
+}
+
+.channels-dropdown{
+  display:none;
+  flex-direction: column;
+  background:#111;
+  margin:0 10px;
+  border-radius:10px;
+  overflow:hidden;
+  transition: max-height 0.3s ease;
+}
+
+.channels-dropdown.show{
+  display:flex;
+}
+
+.channels-dropdown div{
+  padding:10px;
+  cursor:pointer;
+  border-bottom:1px solid #222;
+}
+
+.channels-dropdown div:hover{
+  background:#222;
+}
+
+#current-channel{
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-family: sans-serif;
+  z-index: 1000;
+  pointer-events: none;
+  transition: all 0.5s;
 }
 
 .search-bar{
@@ -87,7 +139,6 @@ header{
   display:flex;
   justify-content:center;
   align-items:center;
-  z-index:10;
 }
 
 .modal-box{
@@ -142,41 +193,4 @@ textarea{
 
 .fame-top{
   border:2px solid gold;
-}
-
-/* DROPDOWN CANALES */
-.channels-dropdown{
-  position:absolute;
-  top:60px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#111;
-  border-radius:15px;
-  padding:10px;
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  z-index:5;
-  width:200px;
-  opacity:0;
-  pointer-events:none;
-  transition:opacity 0.3s, transform 0.3s;
-}
-
-.channels-dropdown.show{
-  opacity:1;
-  pointer-events:auto;
-  transform:translateX(-50%) translateY(0);
-}
-
-.channel-btn{
-  background:#222;
-  padding:10px;
-  border-radius:10px;
-  text-align:center;
-  cursor:pointer;
-}
-
-.channel-btn:hover{
-  background:#333;
 }
