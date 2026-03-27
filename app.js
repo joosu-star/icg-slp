@@ -8,7 +8,7 @@ firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 
 let currentTab="ranking";
-let currentCategory="general";
+let currentCategory=null;
 let lastTime=0;
 
 // ADMIN
@@ -45,16 +45,15 @@ function openModal(){
     alert("No puedes publicar aquí");
     return;
   }
-
-  const placeholders = {
-    general: "¿Qué quieres decir?",
-    profesores: "Opina sobre un profesor...",
-    experiencias: "Cuenta tu experiencia...",
-    quejas: "Describe la situación..."
-  };
-
-  document.getElementById("newMsg").placeholder = placeholders[currentCategory] || "¿Qué quieres decir?";
   document.getElementById("modal").classList.remove("hidden");
+
+  const ph = {
+    general:"¿Qué quieres decir?",
+    profesores:"Opina sobre un profesor…",
+    experiencias:"Cuenta tu experiencia…",
+    quejas:"Describe la situación…"
+  };
+  document.getElementById("newMsg").placeholder = ph[currentCategory] || "¿Qué quieres decir?";
 }
 
 function closeModal(){
@@ -92,7 +91,7 @@ async function addMessage(){
     likedBy:[],
     pinned:false,
     timestamp:Date.now(),
-    categoria:currentCategory
+    categoria:currentCategory || "general"
   });
 
   lastTime=Date.now();
@@ -120,42 +119,13 @@ async function deleteMessage(id){
   await db.collection("mensajes").doc(id).delete();
 }
 
-// TAB PRINCIPAL
+// TAB
 function switchTab(tab){
-  currentTab = tab;
-  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-
-  if(tab === "ranking") document.getElementById("tab-trending").classList.add("active");
-  else if(tab === "fama") document.getElementById("tab-fame").classList.add("active");
-  else if(tab === "info") document.getElementById("tab-info").classList.add("active");
-
-  // Cierra dropdown si estaba abierto
-  document.getElementById("channelsDropdown").classList.remove("show");
-  document.getElementById("tab-channels").classList.remove("active");
-
-  render();
-}
-
-// DROPDOWN CANALES
-function toggleChannels(){
-  const dropdown = document.getElementById("channelsDropdown");
-  const tab = document.getElementById("tab-channels");
-
-  if(dropdown.classList.contains("show")){
-    dropdown.classList.remove("show");
-    tab.classList.remove("active");
-  } else {
-    dropdown.classList.add("show");
-    tab.classList.add("active");
-  }
-}
-
-// CAMBIO DE CATEGORÍA
-function switchCategory(cat){
-  currentCategory = cat;
-  currentTab = "channels";
-  document.getElementById("channelsDropdown").classList.remove("show");
-  document.getElementById("tab-channels").classList.remove("active");
+  currentTab=tab;
+  currentCategory=null;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".channel-item").forEach(t=>t.classList.remove("active"));
+  event.target.classList.add("active");
   render();
 }
 
@@ -173,15 +143,17 @@ function render(){
 
     // INFO
     if(currentTab==="info"){
-      c.innerHTML=`
-        <div class="info-box">
-          🕶️ Whispr<br>
-          Plataforma digital enfocada en la expresión anónima dentro de comunidades.<br><br>
-          🎯 <b>Misión:</b> Permitir que las personas compartan experiencias, opiniones y situaciones sin miedo.<br>
-          🔒 <b>Privacidad:</b> No almacenamos identidad real, sistema completamente anónimo.<br>
-          ⚖️ <b>Normas:</b> No amenazas reales, no datos personales, no contenido ilegal.<br>
-          📌 <b>Nota:</b> Whispr es una plataforma independiente creada con fines sociales y de expresión.
-        </div>`;
+      c.innerHTML=`<div class="info-box">
+      <h3>🕶️ Whispr</h3>
+      <p>Plataforma digital enfocada en la expresión anónima dentro de comunidades.</p>
+      <h4>🎯 Misión</h4>
+      <p>Permitir que las personas compartan experiencias, opiniones y situaciones sin miedo.</p>
+      <h4>🔒 Privacidad</h4>
+      <p>No almacenamos identidad real. Sistema completamente anónimo.</p>
+      <h4>⚖️ Normas</h4>
+      <p>No amenazas reales. No datos personales. No contenido ilegal.</p>
+      <p>📌 Nota: Whispr es una plataforma independiente creada con fines sociales y de expresión.</p>
+      </div>`;
       return;
     }
 
@@ -200,15 +172,20 @@ function render(){
       return;
     }
 
-    // FILTRO CANALES
-    if(currentTab==="channels"){
+    if(currentTab==="channels" && currentCategory){
       arr=arr.filter(m=>m.categoria===currentCategory);
-      c.className = currentCategory; // para borde animado
-    } else c.className = "";
+    }
 
-    // TENDENCIAS
-    if(currentTab==="ranking") arr.sort((a,b)=>score(b)-score(a));
-    else arr.sort((a,b)=>b.timestamp-a.timestamp);
+    if(currentTab!=="ranking" && currentTab!=="fama" && currentTab!=="info" && currentTab!=="channels"){
+      arr=arr.filter(m=>m.categoria===currentTab);
+    }
+
+    // Tendencias = todo
+    if(currentTab==="ranking"){
+      arr.sort((a,b)=>score(b)-score(a));
+    } else {
+      arr.sort((a,b)=>score(b)-score(a));
+    }
 
     arr.forEach(createMessage);
   });
@@ -227,8 +204,8 @@ function crearSeccion(titulo,data){
       <div class="fame-card ${i===0?"fame-top":""}">
         ${i===0?"👑":""}
         <div>${m.text}</div>
+        <div style="font-size:12px;">${m.categoria ? categoryIcon(m.categoria)+" "+capitalize(m.categoria) : ""}</div>
         <div>❤️ ${m.likes}</div>
-        <div style="font-size:12px; opacity:0.7;">${getCategoryBadge(m.categoria)}</div>
       </div>
     `;
   });
@@ -237,37 +214,64 @@ function crearSeccion(titulo,data){
   return html;
 }
 
-// BADGE CATEGORÍA
-function getCategoryBadge(cat){
+// ICONOS CATEGORIAS
+function categoryIcon(cat){
   switch(cat){
-    case "general": return "💬 General";
-    case "profesores": return "👨‍🏫 Profesores";
-    case "experiencias": return "🧠 Experiencias";
-    case "quejas": return "⚠️ Quejas";
+    case "general": return "💬";
+    case "profesores": return "👨‍🏫";
+    case "experiencias": return "🧠";
+    case "quejas": return "⚠️";
     default: return "";
   }
 }
 
-// CREAR MENSAJES
+function capitalize(str){return str.charAt(0).toUpperCase()+str.slice(1);}
+
+// UI
 function createMessage(m){
   let div=document.createElement("div");
   let isOwner=m.user===getOwner();
 
-  div.className="message "+(isOwner?"owner":"");
-
-  let badge = m.categoria ? `<span style="font-size:12px;opacity:0.7;">${getCategoryBadge(m.categoria)}</span><br>` : "";
+  div.className="message "+(isOwner?"owner":"")+(m.categoria?` ${m.categoria}`:"");
 
   div.innerHTML=`
     ${isOwner?`<span class="owner-name">👑 Owner</span><br>`:""}
     ${m.text}<br>
-    ${badge}
-    <small>${timeAgo(m.timestamp)}</small><br>
-    ❤️ ${m.likes}<br>
+    <small>${timeAgo(m.timestamp)}</small>
+    <br>${m.categoria ? categoryIcon(m.categoria)+" "+capitalize(m.categoria) : ""}
+    <br>❤️ ${m.likes}
+    <br>
     <button onclick="like('${m.id}')">❤️</button>
     ${(m.user===getUserId()||isAdmin)?`<button onclick="deleteMessage('${m.id}')">🗑️</button>`:""}
   `;
 
   document.getElementById("content").appendChild(div);
+}
+
+// DROPDOWN CANALES
+function toggleChannels(){
+  const dropdown = document.getElementById("channelsDropdown");
+  const tab = document.getElementById("tab-channels");
+
+  if(dropdown.classList.contains("show")){
+    dropdown.classList.remove("show");
+    tab.classList.remove("active");
+  } else {
+    dropdown.classList.add("show");
+    tab.classList.add("active");
+  }
+}
+
+function switchCategory(cat){
+  currentCategory = cat;
+  currentTab = "channels";
+
+  const dropdown = document.getElementById("channelsDropdown");
+  dropdown.classList.remove("show");
+
+  document.getElementById("tab-channels").classList.remove("active");
+
+  render();
 }
 
 render();
