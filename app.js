@@ -7,14 +7,8 @@ const firebaseConfig={
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 
-let currentTab="trending";
+let currentTab="ranking";
 let lastTime=0;
-let channelColors={
-  general:"#007bff",
-  profesores:"#28a745",
-  experiencias:"#6f42c1",
-  quejas:"#dc3545"
-};
 
 // ADMIN
 const A="MzAxOTE1MzE=";
@@ -50,13 +44,6 @@ function openModal(){
     alert("No puedes publicar aquí");
     return;
   }
-  const placeholders={
-    general:"¿Qué quieres decir?",
-    profesores:"Opina sobre un profesor…",
-    experiencias:"Cuenta tu experiencia…",
-    quejas:"Describe la situación…"
-  };
-  document.getElementById("newMsg").placeholder=placeholders[currentTab]||"¿Qué quieres decir?";
   document.getElementById("modal").classList.remove("hidden");
 }
 
@@ -123,29 +110,33 @@ async function deleteMessage(id){
   await db.collection("mensajes").doc(id).delete();
 }
 
-// TAB
+// TAB PRINCIPAL
 function switchTab(tab){
   currentTab=tab;
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  document.querySelectorAll(".channel").forEach(c=>c.classList.remove("active"));
-  if(tab==="trending") document.querySelector(".tab:nth-child(1)").classList.add("active");
-  else if(tab==="fama") document.querySelector(".tab:nth-child(3)").classList.add("active");
-  else if(tab==="info") document.querySelector(".tab:nth-child(4)").classList.add("active");
-  else{
-    document.querySelector(".dropdown-btn").classList.add("active");
-    document.querySelector(`.channel[onclick*="${tab}"]`).classList.add("active");
-  }
-  closeDropdown();
+  document.querySelector(`#${tab}-tab`)?.classList.add("active");
   render();
 }
 
-// DROPDOWN
+// DROPDOWN CANALES
 function toggleChannels(){
-  document.getElementById("channelsDropdown").classList.toggle("show");
+  const dropdown = document.getElementById("channels-dropdown");
+  dropdown.classList.toggle("show");
 }
 
-function closeDropdown(){
-  document.getElementById("channelsDropdown").classList.remove("show");
+function switchChannel(channel){
+  currentTab = channel;
+  render();
+  
+  document.getElementById("channels-dropdown").classList.remove("show");
+
+  const placeholders = {
+    general: "¿Qué quieres decir?",
+    profesores: "Opina sobre un profesor…",
+    experiencias: "Cuenta tu experiencia…",
+    quejas: "Describe la situación…"
+  };
+  document.getElementById("newMsg").placeholder = placeholders[channel] || "¿Qué quieres decir?";
 }
 
 // RENDER
@@ -163,12 +154,16 @@ function render(){
     // INFO
     if(currentTab==="info"){
       c.innerHTML=`<div class="info-box">
-      🕶️ Whispr<br><br>
-      Plataforma digital enfocada en la expresión anónima.<br><br>
-      🎯 Misión: Permitir que las personas compartan experiencias y opiniones sin miedo.<br>
-      🔒 Privacidad: No almacenamos identidad real.<br>
-      ⚖️ Normas: No amenazas, no contenido ilegal.<br>
-      📌 Nota: Plataforma independiente con fines sociales.
+      🕶️ Whispr<br>
+      Plataforma digital enfocada en la expresión anónima dentro de comunidades.<br><br>
+      🎯 Misión<br>
+      Permitir que las personas compartan experiencias, opiniones y situaciones sin miedo.<br><br>
+      🔒 Privacidad<br>
+      No almacenamos identidad real. Sistema completamente anónimo.<br><br>
+      ⚖️ Normas<br>
+      No amenazas reales. No datos personales. No contenido ilegal.<br><br>
+      📌 Nota<br>
+      Whispr es una plataforma independiente creada con fines sociales y de expresión.
       </div>`;
       return;
     }
@@ -188,27 +183,20 @@ function render(){
       return;
     }
 
-    if(currentTab!=="trending"){
+    // FILTRO POR CANAL
+    if(currentTab!=="ranking"){
       arr=arr.filter(m=>m.categoria===currentTab);
     }
 
-    arr.sort((a,b)=>score(b)-score(a));
+    // TENDENCIAS
+    if(currentTab==="ranking"){
+      arr.sort((a,b)=>score(b)-score(a));
+    } else {
+      arr.sort((a,b)=>score(b)-score(a));
+    }
 
     arr.forEach(createMessage);
   });
-
-  // Fondo dinámico según canal
-  const body=document.body;
-  let colors={
-    general:"#0a0a20",
-    profesores:"#0a2010",
-    experiencias:"#200a20",
-    quejas:"#200a10",
-    trending:"#0a0a0a",
-    fama:"#0a0a0a",
-    info:"#0a0a0a"
-  };
-  body.style.background=colors[currentTab] || "#0a0a0a";
 }
 
 // SALON
@@ -220,17 +208,11 @@ function crearSeccion(titulo,data){
   let html=`<div class="fame-section"><div class="fame-title">${titulo}</div><div class="fame-grid">`;
 
   data.forEach((m,i)=>{
-    let icon="";
-    if(m.categoria==="general") icon="💬";
-    else if(m.categoria==="profesores") icon="👨‍🏫";
-    else if(m.categoria==="experiencias") icon="🧠";
-    else if(m.categoria==="quejas") icon="⚠️";
-
     html+=`
       <div class="fame-card ${i===0?"fame-top":""}">
         ${i===0?"👑":""}
         <div>${m.text}</div>
-        <div>${icon} ${m.categoria.charAt(0).toUpperCase() + m.categoria.slice(1)}</div>
+        <div>${m.categoria ? `<span>${getCategoryBadge(m.categoria)}</span>` : ""}</div>
         <div>❤️ ${m.likes}</div>
       </div>
     `;
@@ -240,32 +222,29 @@ function crearSeccion(titulo,data){
   return html;
 }
 
+function getCategoryBadge(cat){
+  const map = {
+    general:"💬 General",
+    profesores:"👨‍🏫 Profesores",
+    experiencias:"🧠 Experiencias",
+    quejas:"⚠️ Quejas"
+  };
+  return map[cat]||cat;
+}
+
 // UI
 function createMessage(m){
   let div=document.createElement("div");
   let isOwner=m.user===getOwner();
 
-  let colorClass="";
-  if(m.categoria==="general") colorClass="channel-general";
-  else if(m.categoria==="profesores") colorClass="channel-profesores";
-  else if(m.categoria==="experiencias") colorClass="channel-experiencias";
-  else if(m.categoria==="quejas") colorClass="channel-quejas";
-
-  let icon="";
-  if(m.categoria==="general") icon="💬";
-  else if(m.categoria==="profesores") icon="👨‍🏫";
-  else if(m.categoria==="experiencias") icon="🧠";
-  else if(m.categoria==="quejas") icon="⚠️";
-
-  div.className="message "+(isOwner?"owner":"")+" "+colorClass;
+  div.className="message "+(isOwner?"owner":"")+" "+(m.categoria||"");
 
   div.innerHTML=`
     ${isOwner?`<span class="owner-name">👑 Owner</span><br>`:""}
-    <span class="category-badge">${icon} ${m.categoria.charAt(0).toUpperCase() + m.categoria.slice(1)}</span>
-    ${m.text}
-    <br><small>${timeAgo(m.timestamp)}</small>
-    <br>❤️ ${m.likes}
-    <br>
+    ${m.text}<br>
+    <small>${timeAgo(m.timestamp)}</small><br>
+    <span>${m.categoria ? getCategoryBadge(m.categoria) : ""}</span><br>
+    ❤️ ${m.likes}<br>
     <button onclick="like('${m.id}')">❤️</button>
     ${(m.user===getUserId()||isAdmin)?`<button onclick="deleteMessage('${m.id}')">🗑️</button>`:""}
   `;
